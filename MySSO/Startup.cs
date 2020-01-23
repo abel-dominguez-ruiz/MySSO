@@ -46,11 +46,15 @@ namespace MySSO
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAllOriginsPolicy", 
+                builder =>
+                {
+                    builder.AllowAnyOrigin();
+                });
+            });
             services.ConfigureOgunIdsServices(Configuration);
-            services.AddIdentityServer()
-                 .AddInMemoryCaching()
-                .AddClientStore<InMemoryClientStore>()
-                .AddResourceStore<InMemoryResourcesStore>();
             services.AddControllers();
         }
 
@@ -79,10 +83,8 @@ namespace MySSO
                 app.UseDeveloperExceptionPage();
             }
 
-            Task.Run(async () => await InitializeDatabaseAsync(app)).Wait();
             app.UseStaticFiles();
             app.UseRouting();
-            app.UseCors("default");
 
             app.UseAuthentication();
             app.UseAuthorization();
@@ -92,6 +94,8 @@ namespace MySSO
                 endpoints.MapDefaultControllerRoute();
             });
             app.UseIdentityServer();
+            app.UseCors("AllowAllOriginsPolicy");
+
         }
     }
 }

@@ -20,7 +20,8 @@ namespace MySSO.Application.Configuration
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow,
                         EmailConfirmed = true
-                    }
+                    },
+                    "123123")
                 };
         }
 

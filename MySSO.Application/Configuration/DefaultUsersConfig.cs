@@ -20,19 +20,7 @@ namespace MySSO.Application.Configuration
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow,
                         EmailConfirmed = true
-                    },
-                    "123123"),
-                    (new ApplicationUser
-                    {
-                        UserName = "Abelinus",
-                        Email = "abeldr1988@gmail.com",
-                        FirstName = "Abel",
-                        LastName = "Dominguez",
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow,
-                        EmailConfirmed = true
-                    },
-                    "123123"),
+                    }
                 };
         }
 

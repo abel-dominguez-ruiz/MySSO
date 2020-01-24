@@ -58,23 +58,6 @@ namespace MySSO
             services.AddControllers();
         }
 
-        private async Task InitializeDatabaseAsync(IApplicationBuilder app)
-        {
-            using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
-            {
-                foreach (var contextType in new[]
-                {
-                    typeof(IdentityServerDbContext),
-                    typeof(IdentityPersistedGrantDbContext),
-                    typeof(IdentityConfigurationDbContext)
-                })
-                {
-                    await ((DbContext)serviceScope.ServiceProvider.GetRequiredService(contextType)).Database
-                        .MigrateAsync();
-                }
-            }
-        }
-
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {

@@ -15,6 +15,7 @@ using MySSO.EF.Context.Persisted;
 using IdentityServer4.EntityFramework.Options;
 using IdentityServer4.EntityFramework.DbContexts;
 using MySSO.EF.Context.Configuration;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace MySSO.Configuration
 {
@@ -27,7 +28,7 @@ namespace MySSO.Configuration
             var phoneNumberProviderType = typeof(PhoneNumberTokenProvider<ApplicationUser>);
             var emailTokenProviderType = typeof(EmailTokenProvider<ApplicationUser>);
 
-            
+
             var connectionString = configuration.GetConnectionString("DefaultConnection");
             var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
 
@@ -64,25 +65,38 @@ namespace MySSO.Configuration
             })
                 .AddEntityFrameworkStores<IdentityServerDbContext>()
                 .AddTokenProvider(TokenOptions.DefaultProvider, dataProtectionProviderType)
-                .AddTokenProvider(TokenOptions.DefaultEmailProvider, emailTokenProviderType);
+                .AddTokenProvider<EmailTokenProvider<ApplicationUser>>("Email");
 
             ////Configure Identity server SQL connections and persist
-            //services.AddIdentityServer(opts =>
-            //{
-            //    if (configuration["IssuerUri"] != null)
-            //    {
-            //        opts.IssuerUri = configuration["IssuerUri"];
-            //    }
-            //})
-            //    //.AddSigningCredential("CN=sts")
-            //    .AddTemporarySigningCredential()
-            //    .AddOperationalStore(builder => builder.UseSqlServer(connectionString,
-            //        options => options.MigrationsAssembly(migrationsAssembly)))
-            //    .AddConfigurationStore(builder => builder.UseSqlServer(connectionString,
-            //        options => options.MigrationsAssembly(migrationsAssembly)))
-            //    .AddAspNetIdentity<ApplicationUser>()
-            //    .AddProfileService<SSOUserProfileService>();
+            services.AddIdentityServer(opt =>
+            {
+                opt.Csp.Level = IdentityServer4.Models.CspLevel.One;
+                opt.Csp.AddDeprecatedHeader = true;
+                opt.Caching.ClientStoreExpiration = TimeSpan.MaxValue;
+                opt.Caching.ResourceStoreExpiration = TimeSpan.MaxValue;
+                opt.Caching.CorsExpiration = TimeSpan.MaxValue;
+                opt.EmitLegacyResourceAudienceClaim = true;
+                opt.AccessTokenJwtType = "JWT";
+            })
+                //.AddSigningCredential("CN=sts")
+                .AddDeveloperSigningCredential()
+                 .AddConfigurationStore(options =>
+                 {
+                     options.ConfigureDbContext = dbBuilder => dbBuilder.UseSqlServer(connectionString, SetSqlContextOptions());
+                 })
+                .AddAspNetIdentity<ApplicationUser>()
+                .AddProfileService<SSOUserProfileService>();
+        }
 
+        public static Action<SqlServerDbContextOptionsBuilder> SetSqlContextOptions()
+        {
+            return (SqlServerDbContextOptionsBuilder builder) =>
+            {
+                builder.EnableRetryOnFailure(maxRetryCount: 5,
+                                             maxRetryDelay: TimeSpan.FromSeconds(30),
+                                             errorNumbersToAdd: null);
+                builder.UseRelationalNulls(true);
+            };
         }
     }
 }

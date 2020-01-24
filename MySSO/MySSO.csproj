@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\MySSO.Application\MySSO.Application.csproj" />
     <ProjectReference Include="..\MySSO.EF\MySSO.EF.csproj" />
     <ProjectReference Include="..\MySSO.Services\MySSO.Services.csproj" />
   </ItemGroup>

@@ -27,6 +27,7 @@ namespace MySSO.Services.Services
             var user = await _userManager.FindByIdAsync(context.Subject.GetSubjectId());
             var listClaims = new List<Claim>
                 {
+                     new Claim(JwtClaimTypes.Subject, user.Id, ClaimValueTypes.String),
                     new Claim(JwtClaimTypes.Email, user.Email, ClaimValueTypes.Email),
                     new Claim(JwtClaimTypes.PreferredUserName , user.UserName, ClaimValueTypes.String),
                     new Claim(JwtClaimTypes.GivenName, user.FirstName, ClaimValueTypes.String),

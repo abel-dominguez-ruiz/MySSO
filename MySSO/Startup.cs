@@ -46,29 +46,16 @@ namespace MySSO
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.ConfigureOgunIdsServices(Configuration);
-            services.AddIdentityServer()
-                 .AddInMemoryCaching()
-                .AddClientStore<InMemoryClientStore>()
-                .AddResourceStore<InMemoryResourcesStore>();
-            services.AddControllers();
-        }
-
-        private async Task InitializeDatabaseAsync(IApplicationBuilder app)
-        {
-            using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
+            services.AddCors(options =>
             {
-                foreach (var contextType in new[]
+                options.AddPolicy("AllowAllOriginsPolicy", 
+                builder =>
                 {
-                    typeof(IdentityServerDbContext),
-                    typeof(IdentityPersistedGrantDbContext),
-                    typeof(IdentityConfigurationDbContext)
-                })
-                {
-                    await ((DbContext)serviceScope.ServiceProvider.GetRequiredService(contextType)).Database
-                        .MigrateAsync();
-                }
-            }
+                    builder.AllowAnyOrigin();
+                });
+            });
+            services.ConfigureOgunIdsServices(Configuration);
+            services.AddControllers();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -79,10 +66,8 @@ namespace MySSO
                 app.UseDeveloperExceptionPage();
             }
 
-            Task.Run(async () => await InitializeDatabaseAsync(app)).Wait();
             app.UseStaticFiles();
             app.UseRouting();
-            app.UseCors("default");
 
             app.UseAuthentication();
             app.UseAuthorization();
@@ -92,6 +77,8 @@ namespace MySSO
                 endpoints.MapDefaultControllerRoute();
             });
             app.UseIdentityServer();
+            app.UseCors("AllowAllOriginsPolicy");
+
         }
     }
 }
